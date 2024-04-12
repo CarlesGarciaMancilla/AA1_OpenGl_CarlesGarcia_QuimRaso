@@ -13,13 +13,15 @@
 
 std::vector<GLuint> compiledPrograms;
 
-struct GameObject 
+struct GameObject
 {
-glm::vec3 position = glm::vec3(-0.65f,0.f,0.f);
-glm::vec3 rotation = glm::vec3(0.f);
-glm::vec3 forward = glm::vec3(0.f, 1.f, 0.f);
-float fVelocity = 0.01f;
-float fAngularVelocity = 1.f;
+	glm::vec3 position = glm::vec3(-0.65f, 0.f, 0.f);
+	glm::vec3 rotation = glm::vec3(0.f);
+	glm::vec3 scale = glm::vec3(1.0f);
+	glm::vec3 forward = glm::vec3(0.f, 1.f, 0.f);
+	float fVelocity = 0.01f;
+	float fAngularVelocity = 1.f;
+	float fScaleVelocity = 0.01f;
 
 };
 
@@ -36,10 +38,10 @@ void Resize_Window(GLFWwindow* window, int iFrameBufferWidth, int iFrameBufferHe
 	glViewport(0, 0, iFrameBufferWidth, iFrameBufferHeight);
 
 	glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), iFrameBufferWidth, iFrameBufferHeight);
-	
+
 }
 
-glm::mat4 GenerateTranslationMatrix(glm::vec3 translation) 
+glm::mat4 GenerateTranslationMatrix(glm::vec3 translation)
 {
 	return glm::translate(glm::mat4(1.0f), translation);
 
@@ -51,6 +53,12 @@ glm::mat4 GenerateRotationMatrix(glm::vec3 axis, float fDegrees)
 
 }
 
+glm::mat4 GenerateScaleMatrix(glm::vec3 scaleAxis)
+{
+	return glm::scale(glm::mat4(1.0f), scaleAxis);
+
+}
+
 //Funcion que devolvera una string con todo el archivo leido
 std::string Load_File(const std::string& filePath) {
 
@@ -58,7 +66,7 @@ std::string Load_File(const std::string& filePath) {
 
 	std::string fileContent;
 	std::string line;
-	
+
 	//Lanzamos error si el archivo no se ha podido abrir
 	if (!file.is_open()) {
 		std::cerr << "No se ha podido abrir el archivo: " << filePath << std::endl;
@@ -183,7 +191,8 @@ GLuint LoadVertexShader(const std::string& filePath) {
 
 		return vertexShader;
 
-	}else {
+	}
+	else {
 
 		//Obtenemos longitud del log
 		GLint logLength;
@@ -260,7 +269,7 @@ GLuint CreateProgram(const ShaderProgram& shaders) {
 	}
 }
 
-void main(){
+void main() {
 
 	//Definir semillas del rand según el tiempo
 	srand(static_cast<unsigned int>(time(NULL)));
@@ -290,10 +299,13 @@ void main(){
 	glEnable(GL_CULL_FACE);
 
 	//Indicamos lado del culling
-	glCullFace(GL_BACK);	
+	glCullFace(GL_BACK);
 
 	//Inicializamos GLEW y controlamos errores
 	if (glewInit() == GLEW_OK) {
+
+
+		////////////////////////////////////////////  CUBO  ////////////////////////////////////////////
 
 		//Declarar instancia de GameObject
 		GameObject cube;
@@ -313,7 +325,7 @@ void main(){
 		//Definimos color para limpiar el buffer de color
 		glClearColor(0.f, 0.f, 0.f, 1.f);
 
-		GLuint vaoCubo, vboCubo, vboOrto, vboPiramide;
+		GLuint vaoCubo, vaoOrto, vaoPiramide, vboCubo, vboOrto, vboPiramide;
 
 		//Definimos cantidad de vao a crear y donde almacenarlos 
 		glGenVertexArrays(1, &vaoCubo);
@@ -345,6 +357,46 @@ void main(){
 			0.125f,0.125f,0.125f,//0
 		};
 
+
+		//Definimos modo de dibujo para cada cara
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		//Ponemos los valores en el VBO creado
+		glBufferData(GL_ARRAY_BUFFER, sizeof(cubo), cubo, GL_STATIC_DRAW);
+
+		//Indicamos donde almacenar y como esta distribuida la información
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+
+		//Indicamos que la tarjeta gráfica puede usar el atributo 0
+		glEnableVertexAttribArray(0);
+
+		//Desvinculamos VBO
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		//Desvinculamos VAO
+		glBindVertexArray(0);
+
+
+
+
+		///////////////////////////////////////  ORTOEDRO  ////////////////////////////////////////////
+		GameObject ortoedroObject;
+		ortoedroObject.position = glm::vec3(0.f);
+		ortoedroObject.scale = glm::vec3(1.0f, 2.0f, 1.0f);
+
+		//Definimos cantidad de vao a crear y donde almacenarlos 
+		glGenVertexArrays(1, &vaoOrto);
+
+		//Indico que el VAO activo de la GPU es el que acabo de crear
+		glBindVertexArray(vaoOrto);
+
+		//Definimos cantidad de vbo a crear y donde almacenarlos
+		glGenBuffers(1, &vboOrto);
+
+		//Indico que el VBO activo es el que acabo de crear y que almacenará un array. Todos los VBO que genere se asignaran al último VAO que he hecho glBindVertexArray
+		glBindBuffer(GL_ARRAY_BUFFER, vboOrto);
+
+		//Posición X e Y del punto
 		GLfloat ortoedro[] = {
 			-0.125f,0.125f,-0.125f, //3
 			0.125f,0.125f,-0.125f, //2
@@ -366,7 +418,7 @@ void main(){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		//Ponemos los valores en el VBO creado
-		glBufferData(GL_ARRAY_BUFFER, sizeof(cubo), cubo, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(ortoedro), ortoedro, GL_STATIC_DRAW);
 
 		//Indicamos donde almacenar y como esta distribuida la información
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -379,6 +431,11 @@ void main(){
 
 		//Desvinculamos VAO
 		glBindVertexArray(0);
+
+
+
+		////////////////////////////////////////// PIRAMIDE  ////////////////////////////////////////////
+
 
 		//Generar una matriz de rotacion
 		//glm::mat4  rotationMatrix = GenerateRotationMatrix(glm::vec3(0.f, 1.0f, 0.f), 40.f);
@@ -409,28 +466,63 @@ void main(){
 			cube.position = cube.position + cube.forward * cube.fVelocity;
 			cube.rotation = cube.rotation + glm::vec3(0.f, 1.f, 0.f) * cube.fAngularVelocity;
 
+
 			//Invertimos direccion si se sale de los limites
-			if (cube.position.y >= 0.875f || cube.position.y <= -0.875f) 
+			if (cube.position.y >= 0.875f || cube.position.y <= -0.875f)
 			{
 				cube.forward = cube.forward * -1.f;
 			}
 
 			//Genero una matriz de traslacion
 			glm::mat4 cubeTranslationMatrix = GenerateTranslationMatrix(cube.position);
-			glm::mat4 cuberotationMatrix = GenerateRotationMatrix(glm::vec3(0.f, 1.f, 0.f),cube.rotation.y);
+			glm::mat4 cubeRotationMatrix = GenerateRotationMatrix(glm::vec3(0.f, 1.f, 0.f), cube.rotation.y);
+			glm::mat4 cubeScaleMatrix = GenerateScaleMatrix(cube.scale);
 
 			//Aplicamos las matrices
-			cubeModeMatrix = cubeTranslationMatrix * cubeModeMatrix * cuberotationMatrix;
+			cubeModeMatrix = cubeTranslationMatrix * cubeModeMatrix * cubeRotationMatrix * cubeScaleMatrix;
 
 			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(cubeModeMatrix));
-			
 
 
 			//Definimos que queremos dibujar
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
-			
+
 			//Dejamos de usar el VAO indicado anteriormente
 			glBindVertexArray(0);
+
+			//Definimos que queremos usar el VAO con los puntos
+			glBindVertexArray(vaoOrto);
+
+			//Generar modelo de la matriz MVP
+			glm::mat4 ortoModeMatrix = glm::mat4(1.0f);
+
+			//Calculamos la nueva transformacion del cubo
+			ortoedroObject.position = ortoedroObject.position + ortoedroObject.forward * ortoedroObject.fVelocity;
+			ortoedroObject.rotation = ortoedroObject.rotation + glm::vec3(0.f, 0.f, 1.f) * ortoedroObject.fAngularVelocity;
+			ortoedroObject.scale = ortoedroObject.scale - (glm::vec3(0.f, 1.f, 0.f) * ortoedroObject.fScaleVelocity);
+
+			//Invertimos direccion si se sale de los limites
+
+			if (ortoedroObject.scale.y >= 2.f || ortoedroObject.scale.y <= 1.f)
+			{
+				ortoedroObject.fScaleVelocity = ortoedroObject.fScaleVelocity * -1.0f;
+			}
+
+
+			//Genero una matriz de traslacion
+			glm::mat4 ortoRotationMatrix = GenerateRotationMatrix(glm::vec3(0.f, 0.f, 1.f), ortoedroObject.rotation.z);
+			glm::mat4 ortoScaleMatrix = GenerateScaleMatrix(ortoedroObject.scale);
+			//Aplicamos las matrices
+			ortoModeMatrix = ortoModeMatrix * ortoRotationMatrix * ortoScaleMatrix;
+
+			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(ortoModeMatrix));
+
+			//Definimos que queremos dibujar
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+
+			//Dejamos de usar el VAO indicado anteriormente
+			glBindVertexArray(0);
+
 
 			//Cambiamos buffers
 			glFlush();
@@ -441,7 +533,8 @@ void main(){
 		glUseProgram(0);
 		glDeleteProgram(compiledPrograms[0]);
 
-	}else {
+	}
+	else {
 		std::cout << "Ha petao." << std::endl;
 		glfwTerminate();
 	}
