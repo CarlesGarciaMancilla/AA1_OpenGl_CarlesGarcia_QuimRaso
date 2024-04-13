@@ -11,7 +11,7 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 800
 
-std::vector<GLuint> compiledPrograms;
+
 
 struct GameObject
 {
@@ -32,12 +32,159 @@ struct ShaderProgram {
 	GLuint fragmentShader = 0;
 };
 
+std::vector<GLuint> compiledPrograms;
+GLenum drawMode = GL_FILL;
+bool drawFill = true;
+bool drawCube = true;
+bool drawOrto = true;
+bool drawPiramide = true;
+bool pause = false;
+GameObject cube;
+GameObject ortoedroObject;
+GameObject piramideObject;
+
 void Resize_Window(GLFWwindow* window, int iFrameBufferWidth, int iFrameBufferHeight) {
 
 	//Definir nuevo tamaño del viewport
 	glViewport(0, 0, iFrameBufferWidth, iFrameBufferHeight);
 
 	glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), iFrameBufferWidth, iFrameBufferHeight);
+
+}
+
+void ChangeMode()
+{
+
+	if (drawFill == true)
+	{
+
+		drawMode = GL_LINE;
+		drawFill = false;
+
+	}
+	else
+	{
+
+		drawMode = GL_FILL;
+		drawFill = true;
+
+	}
+
+}
+
+void VelocityUp()
+{
+	//cubo
+	cube.fVelocity *= 1.1f;
+	cube.fAngularVelocity *= 1.1f;
+	cube.fScaleVelocity *= 1.1f;
+	//ortoedro
+	ortoedroObject.fVelocity *= 1.1f;
+	ortoedroObject.fAngularVelocity *= 1.1f;
+	ortoedroObject.fScaleVelocity *= 1.1f;
+	//piramide
+	piramideObject.fVelocity *= 1.1f;
+	piramideObject.fAngularVelocity *= 1.1f;
+	piramideObject.fScaleVelocity *= 1.1f;
+}
+
+void VelocityDown()
+{
+	//cubo
+	cube.fVelocity *= 0.9f;
+	cube.fAngularVelocity *= 0.9f;
+	cube.fScaleVelocity *= 0.9f;
+	//ortoedro
+	ortoedroObject.fVelocity *= 0.9f;
+	ortoedroObject.fAngularVelocity *= 0.9f;
+	ortoedroObject.fScaleVelocity *= 0.9f;
+	//piramide
+	piramideObject.fVelocity *= 0.9f;
+	piramideObject.fAngularVelocity *= 0.9f;
+	piramideObject.fScaleVelocity *= 0.9f;
+}
+
+void keyEvents(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+
+
+	if ((key == GLFW_KEY_SPACE && action == GLFW_PRESS))
+	{
+
+		pause = !pause;
+		std::cout << pause
+			<< std::endl;
+
+
+	}
+
+	if (pause)
+	{
+		return;
+	}
+
+	if ((key == GLFW_KEY_1 && action == GLFW_PRESS))
+	{
+
+		ChangeMode();
+
+	}
+
+	if ((key == GLFW_KEY_2 && action == GLFW_PRESS))
+	{
+		if (drawCube == true)
+		{
+			drawCube = false;
+		}
+		else
+		{
+			drawCube = true;
+		}
+
+
+	}
+
+	if ((key == GLFW_KEY_3 && action == GLFW_PRESS))
+	{
+
+		if (drawOrto == true)
+		{
+			drawOrto = false;
+		}
+		else
+		{
+			drawOrto = true;
+		}
+
+	}
+
+	if ((key == GLFW_KEY_4 && action == GLFW_PRESS))
+	{
+		if (drawPiramide == true)
+		{
+			drawPiramide = false;
+		}
+		else
+		{
+			drawPiramide = true;
+		}
+
+
+	}
+
+	if ((key == GLFW_KEY_M && action == GLFW_PRESS))
+	{
+		VelocityUp();
+
+
+	}
+
+	if ((key == GLFW_KEY_N && action == GLFW_PRESS))
+	{
+		VelocityDown();
+
+
+	}
 
 }
 
@@ -308,7 +455,7 @@ void main() {
 		////////////////////////////////////////////  CUBO  ////////////////////////////////////////////
 
 		//Declarar instancia de GameObject
-		GameObject cube;
+
 
 		//Declarar vec2 para definir el offset
 		glm::vec2 offset = glm::vec2(0.f, 0.f);
@@ -319,13 +466,22 @@ void main() {
 		myFirstProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
 		myFirstProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
 
+		ShaderProgram piramideProgram;
+		piramideProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
+		piramideProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
+		piramideProgram.fragmentShader = LoadFragmentShader("PiramideFragmentShader.glsl");
+
 		//Compilar programa
 		compiledPrograms.push_back(CreateProgram(myFirstProgram));
+		compiledPrograms.push_back(CreateProgram(piramideProgram));
 
 		//Definimos color para limpiar el buffer de color
 		glClearColor(0.f, 0.f, 0.f, 1.f);
 
 		GLuint vaoCubo, vaoOrto, vaoPiramide, vboCubo, vboOrto, vboPiramide;
+
+
+		////////////////////////////////////////////  CUBO  ////////////////////////////////////////////
 
 		//Definimos cantidad de vao a crear y donde almacenarlos 
 		glGenVertexArrays(1, &vaoCubo);
@@ -359,7 +515,7 @@ void main() {
 
 
 		//Definimos modo de dibujo para cada cara
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, drawMode);
 
 		//Ponemos los valores en el VBO creado
 		glBufferData(GL_ARRAY_BUFFER, sizeof(cubo), cubo, GL_STATIC_DRAW);
@@ -380,7 +536,7 @@ void main() {
 
 
 		///////////////////////////////////////  ORTOEDRO  ////////////////////////////////////////////
-		GameObject ortoedroObject;
+
 		ortoedroObject.position = glm::vec3(0.f);
 		ortoedroObject.scale = glm::vec3(1.0f, 2.0f, 1.0f);
 
@@ -415,7 +571,7 @@ void main() {
 		};
 
 		//Definimos modo de dibujo para cada cara
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, drawMode);
 
 		//Ponemos los valores en el VBO creado
 		glBufferData(GL_ARRAY_BUFFER, sizeof(ortoedro), ortoedro, GL_STATIC_DRAW);
@@ -435,20 +591,83 @@ void main() {
 
 
 		////////////////////////////////////////// PIRAMIDE  ////////////////////////////////////////////
+		piramideObject.position = glm::vec3(0.65f, 0.f, 0.f);
+		piramideObject.scale = glm::vec3(0.33f);
+		//piramideObject.fAngularVelocity = 0.25f;
 
+		//Definimos cantidad de vao a crear y donde almacenarlos 
+		glGenVertexArrays(1, &vaoPiramide);
+
+		//Indico que el VAO activo de la GPU es el que acabo de crear
+		glBindVertexArray(vaoPiramide);
+
+		//Definimos cantidad de vbo a crear y donde almacenarlos
+		glGenBuffers(1, &vboPiramide);
+
+		//Indico que el VBO activo es el que acabo de crear y que almacenará un array. Todos los VBO que genere se asignaran al último VAO que he hecho glBindVertexArray
+		glBindBuffer(GL_ARRAY_BUFFER, vboPiramide);
+
+		//Posición X e Y del punto
+		GLfloat piramide[] = {
+			// Triángulo base
+	   -0.5f, 0.0f, -0.5f,
+		0.5f, 0.0f, -0.5f,
+		0.0f, 0.0f,  0.5f,
+		// Triángulo frontal
+		0.0f, 0.0f,  0.5f,
+		-0.5f, 0.0f, -0.5f,
+		 0.0f, 1.0f,  0.0f,
+		 // Triángulo derecho
+		 0.5f, 0.0f, -0.5f,
+		  0.0f, 0.0f,  0.5f,
+		  0.0f, 1.0f,  0.0f,
+		  // Triángulo izquierdo
+		  -0.5f, 0.0f, -0.5f,
+		   0.0f, 0.0f,  0.5f,
+		   0.0f, 1.0f,  0.0f
+
+		};
+
+		//Definimos modo de dibujo para cada cara
+		glPolygonMode(GL_FRONT_AND_BACK, drawMode);
+
+		//Ponemos los valores en el VBO creado
+		glBufferData(GL_ARRAY_BUFFER, sizeof(piramide), piramide, GL_STATIC_DRAW);
+
+		//Indicamos donde almacenar y como esta distribuida la información
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+
+		//Indicamos que la tarjeta gráfica puede usar el atributo 0
+		glEnableVertexAttribArray(0);
+
+		//Desvinculamos VBO
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		//Desvinculamos VAO
+		glBindVertexArray(0);
 
 		//Generar una matriz de rotacion
 		//glm::mat4  rotationMatrix = GenerateRotationMatrix(glm::vec3(0.f, 1.0f, 0.f), 40.f);
 
 		//Indicar a la tarjeta GPU que programa debe usar
-		glUseProgram(compiledPrograms[0]);
-
-		//Asignar valores iniciales al programa
-		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
-		//glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	
 
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
+			glfwSetKeyCallback(window, keyEvents);
+			if (pause)
+			{
+				glfwSetKeyCallback(window, keyEvents);
+				glfwPollEvents();
+
+
+				continue;
+			}
+			glUseProgram(compiledPrograms[0]);
+
+			//Asignar valores iniciales al programa
+			glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
+			//glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
 			//Pulleamos los eventos (botones, teclas, mouse...)
 			glfwPollEvents();
@@ -456,6 +675,8 @@ void main() {
 			//Limpiamos los buffers
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+			////////////////////////////////////////////  CUBO  ////////////////////////////////////////////
+			glPolygonMode(GL_FRONT_AND_BACK, drawMode);
 			//Definimos que queremos usar el VAO con los puntos
 			glBindVertexArray(vaoCubo);
 
@@ -473,6 +694,8 @@ void main() {
 				cube.forward = cube.forward * -1.f;
 			}
 
+			///////////////////////////////////////  ORTOEDRO  ////////////////////////////////////////////
+
 			//Genero una matriz de traslacion
 			glm::mat4 cubeTranslationMatrix = GenerateTranslationMatrix(cube.position);
 			glm::mat4 cubeRotationMatrix = GenerateRotationMatrix(glm::vec3(0.f, 1.f, 0.f), cube.rotation.y);
@@ -485,7 +708,10 @@ void main() {
 
 
 			//Definimos que queremos dibujar
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+			if (drawCube)
+			{
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+			}
 
 			//Dejamos de usar el VAO indicado anteriormente
 			glBindVertexArray(0);
@@ -518,7 +744,60 @@ void main() {
 			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(ortoModeMatrix));
 
 			//Definimos que queremos dibujar
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+			if (drawOrto)
+			{
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+			}
+
+			//Dejamos de usar el VAO indicado anteriormente
+			glBindVertexArray(0);
+
+			////////////////////////////////////////////  PIRAMIDE  ////////////////////////////////////////////
+			//Indicar a la tarjeta GPU que programa debe usar
+			glUseProgram(compiledPrograms[1]);
+			float currentTime = glfwGetTime();
+
+			//Asignar valores iniciales al programa
+			glUniform1f(glGetUniformLocation(compiledPrograms[1], "time"), currentTime);
+			glBindVertexArray(vaoPiramide);
+
+			//Generar modelo de la matriz MVP
+			glm::mat4 piramideModeMatrix = glm::mat4(1.0f);
+
+			//Calculamos la nueva transformacion del cubo
+
+
+			piramideObject.position = piramideObject.position + piramideObject.forward * piramideObject.fVelocity;
+			piramideObject.rotation = piramideObject.rotation + glm::vec3(0.f, 1.f, 0.f) * piramideObject.fAngularVelocity;
+
+
+			//Invertimos direccion si se sale de los limites
+			if (piramideObject.position.y >= 0.8f || piramideObject.position.y <= -0.8f)
+			{
+				piramideObject.forward = piramideObject.forward * -1.f;
+			}
+
+			//Genero una matriz de traslacion
+			glm::mat4 piramideTranslationMatrix = GenerateTranslationMatrix(piramideObject.position);
+			glm::mat4 piramideRotationMatrix = GenerateRotationMatrix(glm::vec3(1.f, 1.f, 0.f), piramideObject.rotation.y);
+			glm::mat4 piramideScaleMatrix = GenerateScaleMatrix(piramideObject.scale);
+			//Aplicamos las matrices
+
+			piramideModeMatrix = piramideTranslationMatrix * piramideRotationMatrix * piramideScaleMatrix * piramideModeMatrix;
+
+			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[1], "transform"), 1, GL_FALSE, glm::value_ptr(piramideModeMatrix));
+
+			//Definimos que queremos dibujar
+			if (drawPiramide)
+			{
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 12);
+			}
+
+			//tiempo para cambiar de color
+			if (currentTime > 6.0f)
+			{
+				glfwSetTime(0.0f);
+			}
 
 			//Dejamos de usar el VAO indicado anteriormente
 			glBindVertexArray(0);

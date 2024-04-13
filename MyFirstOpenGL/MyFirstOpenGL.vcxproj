@@ -25,6 +25,7 @@
     <None Include="MyFirstFragmentShader.glsl" />
     <None Include="MyFirstGeometryShader.glsl" />
     <None Include="MyFirstVertexShader.glsl" />
+    <None Include="PiramideFragmentShader.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

@@ -41,5 +41,8 @@
     <None Include="MyFirstFragmentShader.glsl">
       <Filter>Shaders\Fragment Shader</Filter>
     </None>
+    <None Include="PiramideFragmentShader.glsl">
+      <Filter>Shaders\Fragment Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>
