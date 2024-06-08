@@ -19,9 +19,9 @@ struct GameObject
 	glm::vec3 rotation = glm::vec3(0.f);
 	glm::vec3 scale = glm::vec3(1.0f);
 	glm::vec3 forward = glm::vec3(0.f, 1.f, 0.f);
-	float fVelocity = 0.01f;
-	float fAngularVelocity = 1.f;
-	float fScaleVelocity = 0.01f;
+	float fVelocity = 1.f;
+	float fAngularVelocity = 90.f;
+	float fScaleVelocity = 1.f;
 
 };
 
@@ -102,6 +102,19 @@ void VelocityDown()
 	piramideObject.fVelocity *= 0.9f;
 	piramideObject.fAngularVelocity *= 0.9f;
 	piramideObject.fScaleVelocity *= 0.9f;
+}
+
+float getCurrentTime() {
+	float time = glfwGetTime();
+	return time;
+}
+
+float getDeltaTime() {
+	static float lastFrameTime = 0.f;
+	float currentFrameTime = getCurrentTime(); // Supongamos que esta función te da el tiempo actual en segundos.
+	float deltaTime = currentFrameTime - lastFrameTime;
+	lastFrameTime = currentFrameTime;
+	return deltaTime;
 }
 
 void keyEvents(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -656,22 +669,23 @@ void main() {
 
 		//Indicar a la tarjeta GPU que programa debe usar
 	
-		float lastFrameTime = glfwGetTime();
+		
+		
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwSetKeyCallback(window, keyEvents);
-			float deltaTime;
-		
+			float deltaTime = getDeltaTime();
+			float time = 0.f;			
 			if (pause)
 			{
 				glfwSetKeyCallback(window, keyEvents);
 				glfwPollEvents();
 				continue;
+			}			
+			if (!pause) {
+				time = getCurrentTime();				
 			}
-			else {
-				float currentFrameTime = glfwGetTime();
-				deltaTime = currentFrameTime - lastFrameTime;
-			}
+			
 			glUseProgram(compiledPrograms[0]);
 
 			//Asignar valores iniciales al programa
@@ -693,8 +707,8 @@ void main() {
 			glm::mat4 cubeModeMatrix = glm::mat4(1.0f);
 
 			//Calculamos la nueva transformacion del cubo
-			cube.position = cube.position + cube.forward * cube.fVelocity;
-			cube.rotation = cube.rotation + glm::vec3(0.f, 1.f, 0.f) * cube.fAngularVelocity;
+			cube.position = cube.position + cube.forward * cube.fVelocity * deltaTime;
+			cube.rotation = cube.rotation + glm::vec3(0.f, 1.f, 0.f) * cube.fAngularVelocity * deltaTime;
 
 
 			//Invertimos direccion si se sale de los limites
@@ -732,9 +746,9 @@ void main() {
 			glm::mat4 ortoModeMatrix = glm::mat4(1.0f);
 
 			//Calculamos la nueva transformacion del cubo
-			ortoedroObject.position = ortoedroObject.position + ortoedroObject.forward * ortoedroObject.fVelocity;
-			ortoedroObject.rotation = ortoedroObject.rotation + glm::vec3(0.f, 0.f, 1.f) * ortoedroObject.fAngularVelocity;
-			ortoedroObject.scale = ortoedroObject.scale - (glm::vec3(0.f, 1.f, 0.f) * ortoedroObject.fScaleVelocity);
+			ortoedroObject.position = ortoedroObject.position + ortoedroObject.forward * ortoedroObject.fVelocity * deltaTime;
+			ortoedroObject.rotation = ortoedroObject.rotation + glm::vec3(0.f, 0.f, 1.f) * ortoedroObject.fAngularVelocity * deltaTime;
+			ortoedroObject.scale = ortoedroObject.scale - (glm::vec3(0.f, 1.f, 0.f) * ortoedroObject.fScaleVelocity) * deltaTime;
 
 			//Invertimos direccion si se sale de los limites
 
@@ -766,7 +780,7 @@ void main() {
 			glUseProgram(compiledPrograms[1]);
 
 			//Asignar valores iniciales al programa
-			glUniform1f(glGetUniformLocation(compiledPrograms[1], "time"), deltaTime);
+			glUniform1f(glGetUniformLocation(compiledPrograms[1], "time"), time);
 			glBindVertexArray(vaoPiramide);
 
 			//Generar modelo de la matriz MVP
@@ -775,8 +789,8 @@ void main() {
 			//Calculamos la nueva transformacion del cubo
 
 
-			piramideObject.position = piramideObject.position + piramideObject.forward * piramideObject.fVelocity;
-			piramideObject.rotation = piramideObject.rotation + glm::vec3(0.f, 1.f, 0.f) * piramideObject.fAngularVelocity;
+			piramideObject.position = piramideObject.position + piramideObject.forward * piramideObject.fVelocity * deltaTime;
+			piramideObject.rotation = piramideObject.rotation + glm::vec3(0.f, 1.f, 0.f) * piramideObject.fAngularVelocity * deltaTime;
 
 
 			//Invertimos direccion si se sale de los limites
@@ -825,7 +839,7 @@ void main() {
 		std::cout << "Ha petao." << std::endl;
 		glfwTerminate();
 	}
-
+	
 	//Finalizamos GLFW
 	glfwTerminate();
 
