@@ -670,22 +670,19 @@ void main() {
 		//Indicar a la tarjeta GPU que programa debe usar
 	
 		
-		float lastTime = 0.f;
+		float time = 0.f;
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwSetKeyCallback(window, keyEvents);
-			float deltaTime = getDeltaTime();
-			float time = 0.f;					
+			float deltaTime = getDeltaTime();	
 			if (pause)
 			{
-				lastTime = getCurrentTime();
 				glfwSetKeyCallback(window, keyEvents);
 				glfwPollEvents();
 				deltaTime = 0;
-
 			}			
 			if (!pause) {
-				time = getCurrentTime() - lastTime;				
+				time = getCurrentTime();				
 			}
 			
 			glUseProgram(compiledPrograms[0]);
@@ -816,12 +813,6 @@ void main() {
 			if (drawPiramide)
 			{
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 16);
-			}
-
-			//tiempo para cambiar de color
-			if (deltaTime > 6.f)
-			{
-				glfwSetTime(0.0f);
 			}
 
 			//Dejamos de usar el VAO indicado anteriormente
