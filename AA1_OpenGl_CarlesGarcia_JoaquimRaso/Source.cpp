@@ -670,20 +670,22 @@ void main() {
 		//Indicar a la tarjeta GPU que programa debe usar
 	
 		
-		
+		float lastTime = 0.f;
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwSetKeyCallback(window, keyEvents);
 			float deltaTime = getDeltaTime();
-			float time = 0.f;			
+			float time = 0.f;					
 			if (pause)
 			{
+				lastTime = getCurrentTime();
 				glfwSetKeyCallback(window, keyEvents);
 				glfwPollEvents();
-				continue;
+				deltaTime = 0;
+
 			}			
 			if (!pause) {
-				time = getCurrentTime();				
+				time = getCurrentTime() - lastTime;				
 			}
 			
 			glUseProgram(compiledPrograms[0]);
@@ -779,9 +781,10 @@ void main() {
 			//Indicar a la tarjeta GPU que programa debe usar
 			glUseProgram(compiledPrograms[1]);
 
-			//Asignar valores iniciales al programa
-			glUniform1f(glGetUniformLocation(compiledPrograms[1], "time"), time);
+					
+			//Asignar valores iniciales al programa			
 			glBindVertexArray(vaoPiramide);
+			glUniform1f(glGetUniformLocation(compiledPrograms[1], "time"), time);
 
 			//Generar modelo de la matriz MVP
 			glm::mat4 piramideModeMatrix = glm::mat4(1.0f);
