@@ -671,6 +671,7 @@ void main() {
 	
 		
 		float time = 0.f;
+		float lasttime = 0.f;
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwSetKeyCallback(window, keyEvents);
@@ -679,10 +680,12 @@ void main() {
 			{
 				glfwSetKeyCallback(window, keyEvents);
 				glfwPollEvents();
-				deltaTime = 0;
+				lasttime = getCurrentTime();
+				deltaTime = 0;				
 			}			
 			if (!pause) {
-				time = getCurrentTime();				
+				time = getCurrentTime() - lasttime/2;	
+
 			}
 			
 			glUseProgram(compiledPrograms[0]);
