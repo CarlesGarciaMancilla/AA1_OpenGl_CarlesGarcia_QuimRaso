@@ -711,10 +711,13 @@ void main() {
 
 
 			//Invertimos direccion si se sale de los limites
-			if (cube.position.y >= 0.875f || cube.position.y <= -0.875f)
-			{
-				cube.forward = cube.forward * -1.f;
+			if (cube.position.y <= -0.875f) {
+				cube.forward = glm::vec3(0.f, 1.f, 0.f);;
 			}
+			
+			else if (cube.position.y >= 0.875f) {
+				cube.forward = glm::vec3(0.f, -1.f, 0.f);;
+			}			
 
 			///////////////////////////////////////  ORTOEDRO  ////////////////////////////////////////////
 
@@ -794,9 +797,12 @@ void main() {
 
 
 			//Invertimos direccion si se sale de los limites
-			if (piramideObject.position.y >= 0.8f || piramideObject.position.y <= -0.8f)
-			{
-				piramideObject.forward = piramideObject.forward * -1.f;
+			if (piramideObject.position.y <= -0.8f) {
+				piramideObject.forward = glm::vec3(0.f, 1.f, 0.f);;
+			}
+
+			else if (piramideObject.position.y >= 0.8f) {
+				piramideObject.forward = glm::vec3(0.f, -1.f, 0.f);;
 			}
 
 			//Genero una matriz de traslacion
