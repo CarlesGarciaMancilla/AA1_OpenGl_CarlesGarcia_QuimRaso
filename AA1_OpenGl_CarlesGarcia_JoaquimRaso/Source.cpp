@@ -110,6 +110,7 @@ float getCurrentTime() {
 }
 
 float getDeltaTime() {
+	//Calculamos el deltaTime para las transformaciones
 	static float lastFrameTime = 0.f;
 	float currentFrameTime = getCurrentTime(); // Supongamos que esta función te da el tiempo actual en segundos.
 	float deltaTime = currentFrameTime - lastFrameTime;
@@ -547,6 +548,7 @@ void main() {
 
 		///////////////////////////////////////  ORTOEDRO  ////////////////////////////////////////////
 
+		//Inicializamos la posicion y escala del otroedro
 		ortoedroObject.position = glm::vec3(0.f);
 		ortoedroObject.scale = glm::vec3(1.0f, 2.0f, 1.0f);
 
@@ -601,9 +603,11 @@ void main() {
 
 
 		////////////////////////////////////////// PIRAMIDE  ////////////////////////////////////////////
+
+
+		//Inicializamos la posicion y escala de la piramide
 		piramideObject.position = glm::vec3(0.65f, 0.f, 0.f);
 		piramideObject.scale = glm::vec3(0.33f);
-		//piramideObject.fAngularVelocity = 0.25f;
 
 		//Definimos cantidad de vao a crear y donde almacenarlos 
 		glGenVertexArrays(1, &vaoPiramide);
@@ -663,27 +667,23 @@ void main() {
 
 		//Desvinculamos VAO
 		glBindVertexArray(0);
-
-		//Generar una matriz de rotacion
-		//glm::mat4  rotationMatrix = GenerateRotationMatrix(glm::vec3(0.f, 1.0f, 0.f), 40.f);
-
-		//Indicar a la tarjeta GPU que programa debe usar
-	
 		
 		float time = 0.f;
 		float lasttime = 0.f;
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwSetKeyCallback(window, keyEvents);
+			//definimos delta time 
 			float deltaTime = getDeltaTime();	
 			if (pause)
 			{
 				glfwSetKeyCallback(window, keyEvents);
 				glfwPollEvents();
 				lasttime = getCurrentTime();
-				deltaTime = 0;				
+				deltaTime = 0;	//como las transformaciones dependen de este valor, lo seteamos a 0	para pausar el movimiento		
 			}			
 			if (!pause) {
+				//Calculamos el tiempo para el cambio de color del triangulo y que sea el pertinente despues de pausar
 				time = getCurrentTime() - lasttime/2;	
 
 			}
@@ -692,7 +692,6 @@ void main() {
 
 			//Asignar valores iniciales al programa
 			glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
-			//glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
 			//Pulleamos los eventos (botones, teclas, mouse...)
 			glfwPollEvents();
@@ -716,8 +715,7 @@ void main() {
 			//Invertimos direccion si se sale de los limites
 			if (cube.position.y <= -0.875f) {
 				cube.forward = glm::vec3(0.f, 1.f, 0.f);;
-			}
-			
+			}			
 			else if (cube.position.y >= 0.875f) {
 				cube.forward = glm::vec3(0.f, -1.f, 0.f);;
 			}			
@@ -750,13 +748,12 @@ void main() {
 			//Generar modelo de la matriz MVP
 			glm::mat4 ortoModeMatrix = glm::mat4(1.0f);
 
-			//Calculamos la nueva transformacion del cubo
+			//Calculamos la nueva transformacion del ortoedro
 			ortoedroObject.position = ortoedroObject.position + ortoedroObject.forward * ortoedroObject.fVelocity * deltaTime;
 			ortoedroObject.rotation = ortoedroObject.rotation + glm::vec3(0.f, 0.f, 1.f) * ortoedroObject.fAngularVelocity * deltaTime;
 			ortoedroObject.scale = ortoedroObject.scale - (glm::vec3(0.f, 1.f, 0.f) * ortoedroObject.fScaleVelocity) * deltaTime;
 
-			//Invertimos direccion si se sale de los limites
-
+			//Invertimos la escala cuando llega a sus maximos y minimos
 			if (ortoedroObject.scale.y >= 2.f || ortoedroObject.scale.y <= 1.f)
 			{
 				ortoedroObject.fScaleVelocity = ortoedroObject.fScaleVelocity * -1.0f;
@@ -781,6 +778,7 @@ void main() {
 			glBindVertexArray(0);
 
 			////////////////////////////////////////////  PIRAMIDE  ////////////////////////////////////////////
+			
 			//Indicar a la tarjeta GPU que programa debe usar
 			glUseProgram(compiledPrograms[1]);
 
@@ -792,9 +790,7 @@ void main() {
 			//Generar modelo de la matriz MVP
 			glm::mat4 piramideModeMatrix = glm::mat4(1.0f);
 
-			//Calculamos la nueva transformacion del cubo
-
-
+			//Calculamos la nueva transformacion del piramide
 			piramideObject.position = piramideObject.position + piramideObject.forward * piramideObject.fVelocity * deltaTime;
 			piramideObject.rotation = piramideObject.rotation + glm::vec3(0.f, 1.f, 0.f) * piramideObject.fAngularVelocity * deltaTime;
 
@@ -803,7 +799,6 @@ void main() {
 			if (piramideObject.position.y <= -0.8f) {
 				piramideObject.forward = glm::vec3(0.f, 1.f, 0.f);;
 			}
-
 			else if (piramideObject.position.y >= 0.8f) {
 				piramideObject.forward = glm::vec3(0.f, -1.f, 0.f);;
 			}
